@@ -11,17 +11,17 @@ module.exports = function(mammoth) {
                 quality = 80, 
                 width = 800, 
                 height = 800,
-                format = 'jpeg'
+                format = 'jpeg',
+                filename
             } = options;
 
             const imagesDir = path.join(outputDir, 'images');
             await fs.mkdir(imagesDir, { recursive: true });
 
-            // Detect image type
-            const metadata = await sharp(imageBuffer).metadata();
-            const outputFormat = format || metadata.format;
-            const hash = crypto.createHash('md5').update(imageBuffer).digest('hex');
-            const filename = `${hash}.${outputFormat}`;
+            if (!filename) {
+                throw new Error('Filename is required for image processing');
+            }
+
             const imagePath = path.join(imagesDir, filename);
 
             // Process image based on format
@@ -31,7 +31,7 @@ module.exports = function(mammoth) {
                     withoutEnlargement: true
                 });
 
-            switch(outputFormat) {
+            switch(format) {
                 case 'jpeg':
                 case 'jpg':
                     await sharpInstance.jpeg({ quality }).toFile(imagePath);

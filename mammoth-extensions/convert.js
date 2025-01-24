@@ -6,6 +6,12 @@ const path = require('path');
 const extensions = createExtensions(mammoth);
 const outputDir = process.argv[2] || './output';
 const imagesDir = path.join(outputDir, 'images');
+let currentInputFile = '';
+
+function getImageName(index, inputFile) {
+    const basename = path.basename(inputFile, '.docx');
+    return `${basename}_${String(index).padStart(4, '0')}.jpeg`;
+}
 
 async function ensureDirectories() {
     console.log('Creating directories...');
@@ -69,14 +75,13 @@ async function createHtml5Document(content, title = 'Converted Document') {
 </html>`;
 }
 
-async function processInlineImages(content) {
+async function processInlineImages(content, inputFile) {
     if (!content) {
         console.error('No content to process');
         return content;
     }
 
     try {
-        // Match image with optional following caption
         const pattern = /<p><img([^>]+)src="([^"]+)"([^>]*)><\/p>\s*(?:<p class="caption">([^<]+)<\/p>)?/g;
         let processedContent = content;
         let imageCount = 0;
@@ -87,21 +92,23 @@ async function processInlineImages(content) {
             const [fullMatch, beforeSrc, base64Data, afterSrc, caption] = match;
             
             try {
-                // Extract and process image
                 const imageBuffer = Buffer.from(base64Data.split(',')[1], 'base64');
+                const filename = getImageName(imageCount, inputFile);
+                console.log(`Processing image: ${filename}`);
+                
                 const imagePath = await extensions.images.processImage(imageBuffer, {
                     outputDir,
-                    quality: 80
+                    quality: 80,
+                    filename
                 });
 
-                // Create replacement HTML
                 const imgTag = `<img${beforeSrc}src="${imagePath}"${afterSrc}>`;
                 const replacement = caption
                     ? `<figure>\n    ${imgTag}\n    <figcaption>${caption}</figcaption>\n</figure>`
                     : `<p>${imgTag}</p>`;
 
                 processedContent = processedContent.replace(fullMatch, replacement);
-                console.log(`Processed image ${imageCount}`);
+                console.log(`Processed image: ${filename}`);
             } catch (imgError) {
                 console.error(`Error processing image ${imageCount}:`, imgError);
                 continue;
@@ -116,6 +123,7 @@ async function processInlineImages(content) {
 }
 
 async function convertDocument(inputPath) {
+    currentInputFile = inputPath;
     console.log(`Starting conversion of ${inputPath}`);
     
     try {
@@ -127,7 +135,7 @@ async function convertDocument(inputPath) {
         const result = await mammoth.convertToHtml({path: inputPath}, options);
         
         console.log('Processing content...');
-        const processedContent = await processInlineImages(result.value);
+        const processedContent = await processInlineImages(result.value, inputPath);
         const html = await createHtml5Document(processedContent);
         
         const outputPath = path.join(outputDir, `${path.basename(inputPath, '.docx')}.html`);
