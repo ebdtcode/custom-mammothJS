@@ -6,11 +6,23 @@ const path = require('path');
 const extensions = createExtensions(mammoth);
 const outputDir = process.argv[2] || './output';
 const imagesDir = path.join(outputDir, 'images');
+const imagePattern = process.argv[4] || 'source_filename'; // New pattern option
 let currentInputFile = '';
 
-function getImageName(index, inputFile) {
+function getImagePattern(pattern, inputFile, index) {
     const basename = path.basename(inputFile, '.docx');
-    return `${basename}_${String(index).padStart(4, '0')}.jpeg`;
+    switch(pattern) {
+        case 'source_filename':
+            return `${basename}_${String(index).padStart(4, '0')}.jpeg`;
+        case 'sequential':
+            return `image_${String(index).padStart(4, '0')}.jpeg`;
+        default:
+            return `${basename}_${String(index).padStart(4, '0')}.jpeg`;
+    }
+}
+
+function getImageName(index, inputFile) {
+    return getImagePattern(imagePattern, inputFile, index);
 }
 
 async function ensureDirectories() {
@@ -154,4 +166,5 @@ if (!inputFile) {
     process.exit(1);
 }
 
+console.log(`Using image pattern: ${imagePattern}`);
 convertDocument(inputFile);
