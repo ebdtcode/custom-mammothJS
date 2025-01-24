@@ -17,7 +17,7 @@ const options = {
     customElements: extensions.elements.createCustomReader(),
     styleMap: extensions.styles.customStyleMap.concat([
         "p[style-name='Normal'] => p",
-        "p[style-name='Caption'] => p.caption",
+        "p[style-name='Caption'] => figcaption",  // Changed from p.caption
         "r[style-name='Emphasis'] => em"
     ]),
     transformers: extensions.transforms.createPipeline({

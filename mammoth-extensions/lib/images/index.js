@@ -57,33 +57,6 @@ module.exports = function(mammoth) {
                 type: contentType,
                 original: fullMatch
             };
-        },
-
-        createImageTransformer: function(options = {}) {
-            return {
-                transformElement: async (element) => {
-                    if (element.type !== 'image') return element;
-                    const imagePath = await this.processImage(element.value.buffer, options);
-                    return { ...element, value: { ...element.value, src: imagePath } };
-                }
-            };
-        },
-
-        createTransformer: function(options = {}) {
-            return {
-                transformImage: async (element) => {
-                    if (element.type !== 'image') return element;
-                    
-                    const imagePath = await this.processImage(element.value.buffer, options);
-                    return {
-                        ...element,
-                        value: {
-                            ...element.value,
-                            src: imagePath
-                        }
-                    };
-                }
-            };
         }
     };
 };
