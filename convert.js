@@ -4,6 +4,8 @@ const fs = require('fs').promises;
 const path = require('path');
 const { filterWarnings } = require('./utils/warning-handler');
 const { sanitizeFilename } = require('./utils/filename-handler');
+const { Document } = require('./models/document');
+const { getPaginationInfo, generatePaginationHtml } = require('./utils/pagination');
 
 const extensions = createExtensions(mammoth);
 const sourceDir = process.argv[2] || './sources';
@@ -12,12 +14,28 @@ const imagesDir = path.join(outputDir, 'images');
 const imagePattern = process.argv[4] || 'source_filename';
 let currentInputFile = '';
 
+// Add title map to store document titles
+let documentTitles = new Map();
+let documents = [];
+
+async function getDocumentTitle(filePath) {
+    try {
+        const result = await mammoth.extractRawText({ path: filePath });
+        const firstLine = result.value.split('\n')[0].trim();
+        return firstLine || path.basename(filePath, '.docx');
+    } catch (error) {
+        console.error(`Failed to extract title from ${filePath}:`, error);
+        return path.basename(filePath, '.docx');
+    }
+}
+
 async function getWordFiles(directory) {
     const files = await fs.readdir(directory);
     return files.filter(file => file.endsWith('.docx'));
 }
 
 async function processDirectory(srcDir) {
+    documentTitles.clear();
     const files = await getWordFiles(srcDir);
     console.log(`Found ${files.length} Word documents to process`);
     
@@ -29,6 +47,9 @@ async function processDirectory(srcDir) {
             console.error(`Failed to convert ${file}:`, error);
         }
     }
+    
+    await generateIndexHtml();
+    console.log('Generated index.html');
 }
 
 function getImagePattern(pattern, inputFile, index) {
@@ -228,20 +249,18 @@ tr:hover {
     await fs.writeFile(path.join(outputDir, 'main.css'), cssContent);
 }
 
-function generateHtml5Template(content, title) {
-    return `<!DOCTYPE html>
+function generateHtml5Template(content, title, pagination) {
+    return `
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>${title}</title>
     <link rel="stylesheet" href="./main.css">
 </head>
 <body>
-    <main>
-        ${content}
-    </main>
+    ${content}
+    ${pagination}
 </body>
 </html>`;
 }
@@ -315,11 +334,14 @@ async function processBase64Images(content, outputDir) {
 async function convertDocument(inputFile) {
     try {
         currentInputFile = inputFile;
+        const title = await getDocumentTitle(inputFile);
         const baseFilename = path.basename(inputFile);
         const outputFilename = sanitizeFilename(baseFilename);
         const outputFile = path.join(outputDir, outputFilename);
         const documentTitle = outputFilename.replace('.html', '');
         
+        documentTitles.set(outputFilename, title);
+
         console.log(`Converting ${inputFile} to ${outputFile}...`);
         const result = await mammoth.convertToHtml({path: inputFile}, options);
         
@@ -331,7 +353,15 @@ async function convertDocument(inputFile) {
         // Process base64 images before generating final HTML
         const processedContent = await processBase64Images(result.value, outputDir);
 
-        const html5Content = generateHtml5Template(processedContent, documentTitle);
+        const category = determineCategory(outputFilename);
+        const doc = new Document(outputFilename, title, category, CATEGORIES[category].order);
+        documents.push(doc);
+        
+        const { prev, next } = getPaginationInfo(documents, outputFilename);
+        const paginationHtml = generatePaginationHtml(prev, next);
+        
+        // Add pagination to HTML template
+        const html5Content = generateHtml5Template(processedContent, documentTitle, paginationHtml);
         await fs.writeFile(outputFile, html5Content, 'utf8');
         console.log(`Successfully converted to ${outputFilename}`);
         
@@ -339,6 +369,85 @@ async function convertDocument(inputFile) {
         console.error('Conversion failed:', error);
         throw error;
     }
+}
+
+const CATEGORIES = {
+    'General Information': {
+        pattern: /foreword/i,
+        order: 1
+    },
+    'General Notices': {
+        pattern: /_gen/i,
+        order: 2
+    },
+    'Airports and Facility': {
+        pattern: /^((?!(_gen|_mil|_sp)).)*$/i,
+        order: 3
+    },
+    'Special Operations': {
+        pattern: /_mil/i,
+        order: 4
+    },
+    'Major Sporting Events': {
+        pattern: /_sp/i,
+        order: 5
+    },
+    'Airshows': {
+        pattern: /_as/i,
+        order: 6
+    }
+};
+
+function determineCategory(filename) {
+    return Object.entries(CATEGORIES)
+        .find(([_, config]) => config.pattern.test(filename))?.[0] 
+        || 'Airports and Facility';
+}
+
+async function generateIndexHtml() {
+    const categorizedDocs = new Map();
+    
+    // Initialize categories
+    Object.keys(CATEGORIES).forEach(category => {
+        categorizedDocs.set(category, []);
+    });
+    
+    // Sort documents into categories
+    for (const [filename, title] of documentTitles.entries()) {
+        for (const [category, config] of Object.entries(CATEGORIES)) {
+            if (config.pattern.test(filename)) {
+                categorizedDocs.get(category).push({ filename, title });
+                break;
+            }
+        }
+    }
+    
+    // Generate HTML content
+    const template = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Index</title>
+    <link rel="stylesheet" href="main.css">
+</head>
+<body>
+    <h1>Document Index</h1>
+    ${Array.from(categorizedDocs.entries())
+        .sort((a, b) => CATEGORIES[a[0]].order - CATEGORIES[b[0]].order)
+        .map(([category, docs]) => docs.length ? `
+    <h2>${category}</h2>
+    <ul>
+        ${docs
+            .sort((a, b) => a.filename.localeCompare(b.filename))
+            .map(doc => `<li><a href="./${doc.filename}">${doc.title}</a></li>`)
+            .join('\n        ')}
+    </ul>` : '').join('\n')}
+</body>
+</html>`;
+
+    await fs.writeFile(path.join(outputDir, 'index.html'), template, 'utf8');
 }
 
 async function main() {

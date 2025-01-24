@@ -10,3 +10,5 @@ declare interface optionsType {
 	static postProcess: Function;
 	};
 }
+
+declare interface CATEGORIESType {}
