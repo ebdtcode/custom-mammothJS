@@ -1,0 +1,12 @@
+{
+  "name": "mammoth-extensions",
+  "version": "1.0.0",
+  "main": "index.js",
+  "engines": {
+    "node": ">=8.0.0"
+  },
+  "dependencies": {
+    "mammoth": "^1.6.0",
+    "sharp": "^0.32.0"
+  }
+}
