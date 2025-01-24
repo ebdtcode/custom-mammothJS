@@ -1,0 +1,111 @@
+
+:root {
+    --primary: #2563eb;
+    --secondary: #475569;
+    --background: #ffffff;
+    --text: #1f2937;
+    --border: #e5e7eb;
+    --hover: #f8fafc;
+    --spacing: 1rem;
+    --radius: 8px;
+}
+
+body {
+    max-width: min(90%, 65ch);
+    margin: 0 auto;
+    padding: var(--spacing);
+    font-family: system-ui, -apple-system, sans-serif;
+    line-height: 1.6;
+    color: var(--text);
+    background: var(--background);
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius);
+    transition: transform 0.2s ease;
+}
+
+figure {
+    margin: calc(var(--spacing) * 2) 0;
+    text-align: center;
+}
+
+figure img {
+    box-shadow: 0 4px 6px rgb(0 0 0 / 0.1);
+}
+
+figure:hover img {
+    transform: scale(1.01);
+}
+
+figcaption {
+    margin-top: var(--spacing);
+    font-style: italic;
+    color: var(--secondary);
+}
+
+table {
+    width: 100%;
+    margin: var(--spacing) 0;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgb(0 0 0 / 0.1);
+}
+
+th {
+    background: var(--primary);
+    color: white;
+    font-weight: 600;
+    text-align: left;
+    border-bottom: 2px solid var(--border);
+}
+
+th, td {
+    padding: calc(var(--spacing) * 0.75);
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+}
+
+th:last-child, td:last-child {
+    border-right: none;
+}
+
+tr:last-child td {
+    border-bottom: none;
+}
+
+tr:nth-child(even) {
+    background: var(--hover);
+}
+
+tr:hover {
+    background: var(--hover);
+}
+
+@media (max-width: 640px) {
+    table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+    
+    th, td {
+        padding: calc(var(--spacing) * 0.5);
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --primary: #3b82f6;
+        --secondary: #9ca3af;
+        --background: #1f2937;
+        --text: #f3f4f6;
+        --border: #374151;
+        --hover: #2d3748;
+    }
+}

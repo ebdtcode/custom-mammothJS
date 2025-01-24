@@ -3,21 +3,26 @@ const createExtensions = require('.');
 const fs = require('fs').promises;
 const path = require('path');
 
-const extensions = createExtensions(mammoth);
-const outputDir = process.argv[2] || './output';
+// Configuration
+const sourceDir = process.argv[2] || './sources';
+const outputDir = process.argv[3] || './output';
+const imagePattern = process.argv[4] || 'source_filename';
 const imagesDir = path.join(outputDir, 'images');
-const imagePattern = process.argv[4] || 'source_filename'; // New pattern option
 let currentInputFile = '';
+
+const extensions = createExtensions(mammoth);
 
 function getImagePattern(pattern, inputFile, index) {
     const basename = path.basename(inputFile, '.docx');
+    const relativePath = './images/';
+    
     switch(pattern) {
         case 'source_filename':
-            return `${basename}_${String(index).padStart(4, '0')}.jpeg`;
+            return `${relativePath}${basename}_${String(index).padStart(4, '0')}.jpeg`;
         case 'sequential':
-            return `image_${String(index).padStart(4, '0')}.jpeg`;
+            return `${relativePath}image_${String(index).padStart(4, '0')}.jpeg`;
         default:
-            return `${basename}_${String(index).padStart(4, '0')}.jpeg`;
+            return `${relativePath}${basename}_${String(index).padStart(4, '0')}.jpeg`;
     }
 }
 
@@ -178,47 +183,39 @@ async function createHtml5Document(content, title = 'Converted Document') {
 </html>`;
 }
 
-async function processInlineImages(content, inputFile) {
-    if (!content) {
-        console.error('No content to process');
-        return content;
-    }
-
+async function processInlineImages(content, inputPath) {
     try {
-        const pattern = /<p><img([^>]+)src="([^"]+)"([^>]*)><\/p>\s*(?:<p class="caption">([^<]+)<\/p>)?/g;
-        let processedContent = content;
-        let imageCount = 0;
-        let match;
+        let modifiedContent = content;
+        const imagePattern = /<p[^>]*>\s*<img[^>]+src="(data:image\/([^;]+);base64,([^"]+))"[^>]*>\s*<\/p>\s*(?:<p[^>]*>(.*?)<\/p>)?/g;
+        let imageIndex = 1;
+        const promises = [];
 
-        while ((match = pattern.exec(content)) !== null) {
-            imageCount++;
-            const [fullMatch, beforeSrc, base64Data, afterSrc, caption] = match;
-            
+        modifiedContent = modifiedContent.replace(imagePattern, (match, base64Src, imageType, imageData, caption) => {
             try {
-                const imageBuffer = Buffer.from(base64Data.split(',')[1], 'base64');
-                const filename = getImageName(imageCount, inputFile);
-                console.log(`Processing image: ${filename}`);
+                const imageFileName = getImageName(imageIndex++, inputPath);
+                const imagePath = path.join(imagesDir, path.basename(imageFileName));
                 
-                const imagePath = await extensions.images.processImage(imageBuffer, {
-                    outputDir,
-                    quality: 80,
-                    filename
-                });
+                promises.push(
+                    fs.writeFile(imagePath, Buffer.from(imageData, 'base64'))
+                );
 
-                const imgTag = `<img${beforeSrc}src="${imagePath}"${afterSrc}>`;
-                const replacement = caption
-                    ? `<figure>\n    ${imgTag}\n    <figcaption>${caption}</figcaption>\n</figure>`
-                    : `<p>${imgTag}</p>`;
-
-                processedContent = processedContent.replace(fullMatch, replacement);
-                console.log(`Processed image: ${filename}`);
-            } catch (imgError) {
-                console.error(`Error processing image ${imageCount}:`, imgError);
-                continue;
+                if (caption && caption.trim()) {
+                    return `
+<figure>
+    <img src="${imageFileName}" alt="${caption.trim()}">
+    <figcaption>${caption.trim()}</figcaption>
+</figure>`;
+                }
+                
+                return `<p><img src="${imageFileName}"></p>`;
+            } catch (err) {
+                console.error('Failed to process image:', err);
+                return match;
             }
-        }
+        });
 
-        return processedContent;
+        await Promise.all(promises);
+        return modifiedContent;
     } catch (error) {
         console.error('Image processing error:', error);
         return content;
@@ -251,11 +248,53 @@ async function convertDocument(inputPath) {
     }
 }
 
-const inputFile = process.argv[3];
-if (!inputFile) {
-    console.error('Please provide an input file path');
-    process.exit(1);
+async function processDirectory(sourcePath) {
+    try {
+        // Validate source directory
+        await fs.access(sourcePath);
+        const files = await fs.readdir(sourcePath);
+        
+        // Filter DOCX files
+        const docxFiles = files.filter(file => 
+            path.extname(file).toLowerCase() === '.docx'
+        );
+        
+        if (docxFiles.length === 0) {
+            console.log('No .docx files found in source directory');
+            return;
+        }
+
+        // Process each file
+        for (const file of docxFiles) {
+            const inputPath = path.join(sourcePath, file);
+            console.log(`\nProcessing ${file}`);
+            
+            try {
+                await convertDocument(inputPath);
+                console.log(`Completed processing ${file}`);
+            } catch (error) {
+                console.error(`Failed to process ${file}:`, error);
+            }
+        }
+    } catch (error) {
+        console.error('Directory processing failed:', error);
+        process.exit(1);
+    }
 }
 
-console.log(`Using image pattern: ${imagePattern}`);
-convertDocument(inputFile);
+// Main execution
+if (require.main === module) {
+    (async () => {
+        try {
+            await processDirectory(sourceDir);
+        } catch (error) {
+            console.error('Conversion process failed:', error);
+            process.exit(1);
+        }
+    })();
+}
+
+module.exports = {
+    convertDocument,
+    processDirectory
+};
