@@ -5,8 +5,25 @@
   "engines": {
     "node": ">=8.0.0"
   },
+  "scripts": {
+    "start": "node convert.js",
+    "convert:all": "node convert-all.js",
+    "test": "mocha tests/**/*.test.js",
+    "lint": "eslint .",
+    "format": "prettier --write '**/*.{js,json,md}'",
+    "build:docs": "jsdoc -c jsdoc.json"
+  },
   "dependencies": {
-    "mammoth": "^1.6.0",
+    "chalk": "^4.1.2",
+    "mammoth": "^1.9.0",
     "sharp": "^0.32.0"
+  },
+  "devDependencies": {
+    "chai": "^4.3.7",
+    "clean-jsdoc-theme": "^4.3.0",
+    "eslint": "^8.40.0",
+    "jsdoc": "^4.0.2",
+    "mocha": "^10.2.0",
+    "prettier": "^2.8.8"
   }
 }

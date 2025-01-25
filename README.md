@@ -21,17 +21,17 @@ npm install mammoth-extensions
 ## Usage
 
 ```javascript
-const mammoth = require('mammoth');
-const createExtensions = require('mammoth-extensions');
+const mammoth = require("mammoth");
+const createExtensions = require("mammoth-extensions");
 
 const extensions = createExtensions(mammoth);
 const options = {
-    outputDir: './output',
-    imagePattern: 'source_filename'
+  outputDir: "./output",
+  imagePattern: "source_filename",
 };
 
 // Convert a document
-convertDocument('./document.docx', options);
+convertDocument("./document.docx", options);
 ```
 
 ## Output Structure
@@ -65,12 +65,15 @@ Dark mode support
 Mobile-friendly layout
 
 # Install dependencies
+
 npm install
 
 # Run tests
+
 npm test
 
 # Build documentation
+
 npm run docs
 
 Contributing
@@ -81,4 +84,7 @@ Push to the branch
 Create a Pull Request
 License
 MIT License - see LICENSE for details
+
+```
+
 ```

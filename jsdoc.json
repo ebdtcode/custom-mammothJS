@@ -1,0 +1,61 @@
+{
+  "source": {
+    "include": [
+      "lib",
+      "utils",
+      "models",
+      "convert.js",
+      "index.js"
+    ],
+    "exclude": [
+      "node_modules",
+      "tests",
+      "output",
+      "sources"
+    ],
+    "includePattern": ".+\\.js(doc|x)?$",
+    "excludePattern": "(^|\\/|\\\\)_"
+  },
+  "opts": {
+    "destination": "./docs",
+    "recurse": true,
+    "readme": "./README.md",
+    "template": "node_modules/clean-jsdoc-theme",
+    "theme_opts": {
+      "theme": "dark",
+      "title": "MammothJS Extensions Documentation",
+      "menu": [
+        {
+          "title": "GitHub",
+          "link": "https://github.com/yourusername/mammothjs",
+          "target": "_blank"
+        }
+      ],
+      "meta": [
+        {
+          "name": "author",
+          "content": "Your Name"
+        },
+        {
+          "name": "description",
+          "content": "Documentation for MammothJS Extensions - Enhanced DOCX to HTML conversion"
+        }
+      ]
+    }
+  },
+  "plugins": [
+    "plugins/markdown"
+  ],
+  "templates": {
+    "cleverLinks": true,
+    "monospaceLinks": false,
+    "default": {
+      "outputSourceFiles": true,
+      "includeDate": false
+    }
+  },
+  "markdown": {
+    "hardwrap": false,
+    "idInHeadings": true
+  }
+}

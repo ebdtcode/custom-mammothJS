@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MammothJS Documentation</title>
+    <link rel="stylesheet" href="main.css">
+</head>
+<body>
+    <div class="container">
+        <h1>MammothJS Documentation</h1>
+        <div class="document-list" id="documentList"></div>
+        <div class="pagination" id="pagination"></div>
+    </div>
+
+    <script>
+        // Configuration
+        const itemsPerPage = 6;
+        let currentPage = 1;
+
+        // Document data
+        const documents = [
+            { title: 'Rapport Activités', url: 'output/rapport-activites.html' },
+            { title: 'Rapport Activité 1', url: 'output/rapport-activite_1.html' },
+            { title: 'Report', url: 'output/report.html' },
+            { title: 'Sample', url: 'output/sample.html' },
+            { title: 'Test', url: 'output/test.html' },
+            { title: 'Thimble Instructions', url: 'output/thimble_instructions.html' }
+        ];
+
+        // Initialize Navbar
+        class Navbar {
+            constructor(options = {}) {
+                this.options = {
+                    title: 'MammothJS',
+                    theme: 'light',
+                    ...options
+                };
+                this.pages = [];
+            }
+
+            init(pages) {
+                this.pages = pages;
+                this.render();
+            }
+
+            render() {
+                const navbar = document.createElement('nav');
+                navbar.className = 'navbar';
+                navbar.innerHTML = `
+                    <div class="container">
+                        <a href="index.html">${this.options.title}</a>
+                        ${this.pages.map(page => 
+                            `<a href="${page.url}">${page.title}</a>`
+                        ).join('')}
+                    </div>
+                `;
+                document.body.insertBefore(navbar, document.body.firstChild);
+            }
+        }
+
+        // Initialize the navbar
+        const navbar = new Navbar();
+        navbar.init([
+            { title: 'Home', url: 'index.html' },
+            { title: 'Documentation', url: '#' }
+        ]);
+
+        // Render documents
+        function renderDocuments() {
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const currentDocuments = documents.slice(startIndex, endIndex);
+
+            const documentList = document.getElementById('documentList');
+            documentList.innerHTML = currentDocuments.map(doc => `
+                <div class="document-card">
+                    <h2>${doc.title}</h2>
+                    <a href="${doc.url}" aria-label="View ${doc.title}">View Document</a>
+                </div>
+            `).join('');
+
+            renderPagination();
+        }
+
+        // Render pagination
+        function renderPagination() {
+            const totalPages = Math.ceil(documents.length / itemsPerPage);
+            const pagination = document.getElementById('pagination');
+            
+            pagination.innerHTML = `
+                <button onclick="changePage(${currentPage - 1})" 
+                        ${currentPage === 1 ? 'disabled' : ''}
+                        aria-label="Previous page">
+                    Previous
+                </button>
+                <span>Page ${currentPage} of ${totalPages}</span>
+                <button onclick="changePage(${currentPage + 1})"
+                        ${currentPage === totalPages ? 'disabled' : ''}
+                        aria-label="Next page">
+                    Next
+                </button>
+            `;
+        }
+
+        // Change page
+        function changePage(page) {
+            const totalPages = Math.ceil(documents.length / itemsPerPage);
+            if (page >= 1 && page <= totalPages) {
+                currentPage = page;
+                renderDocuments();
+            }
+        }
+
+        // Initial render
+        document.addEventListener('DOMContentLoaded', renderDocuments);
+    </script>
+</body>
+</html>
