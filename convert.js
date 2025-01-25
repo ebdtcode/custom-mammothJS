@@ -70,9 +70,9 @@ function getImageName(index, inputFile) {
 
 async function ensureDirectories() {
     console.log('Creating directories...');
-    await fs.mkdir(sourceDir, { recursive: true });
-    await fs.mkdir(outputDir, { recursive: true });
-    await fs.mkdir(imagesDir, { recursive: true });
+    await ensureDirectoryExists(outputDir);
+    await ensureDirectoryExists(imagesDir);
+    await ensureDirectoryExists(sourceDir);
 }
 
 async function ensureDirectoryExists(dir) {
@@ -80,6 +80,7 @@ async function ensureDirectoryExists(dir) {
         await fs.access(dir);
     } catch {
         await fs.mkdir(dir, { recursive: true });
+        console.log(`Created directory: ${dir}`);
     }
 }
 
@@ -245,7 +246,73 @@ tr:hover {
         --border: #374151;
         --hover: #2d3748;
     }
-}`;
+}
+
+.pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: calc(var(--spacing) * 2) 0;
+    padding: var(--spacing);
+    border-top: 1px solid var(--border);
+}
+
+.pagination a,
+.pagination .disabled {
+    display: inline-flex;
+    align-items: center;
+    padding: calc(var(--spacing) * 0.75) var(--spacing);
+    color: var(--primary);
+    text-decoration: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    transition: all 0.2s ease;
+}
+
+.pagination a:hover {
+    background: var(--hover);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgb(0 0 0 / 0.1);
+}
+
+.pagination .disabled {
+    color: var(--secondary);
+    background: var(--hover);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.prev-container,
+.next-container {
+    flex: 1;
+}
+
+.next-container {
+    text-align: right;
+}
+
+.prev::before {
+    content: "←";
+    margin-right: 0.5em;
+}
+
+.next::after {
+    content: "→";
+    margin-left: 0.5em;
+}
+
+// Optional: Add keyboard navigation support
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') {
+        const prev = document.querySelector('.prev');
+        if (prev) prev.click();
+    }
+    if (e.key === 'ArrowRight') {
+        const next = document.querySelector('.next');
+        if (next) next.click();
+    }
+});
+`;
     await fs.writeFile(path.join(outputDir, 'main.css'), cssContent);
 }
 
@@ -357,13 +424,14 @@ async function convertDocument(inputFile) {
         const doc = new Document(outputFilename, title, category, CATEGORIES[category].order);
         documents.push(doc);
         
-        const { prev, next } = getPaginationInfo(documents, outputFilename);
-        const paginationHtml = generatePaginationHtml(prev, next);
-        
-        // Add pagination to HTML template
-        const html5Content = generateHtml5Template(processedContent, documentTitle, paginationHtml);
-        await fs.writeFile(outputFile, html5Content, 'utf8');
-        console.log(`Successfully converted to ${outputFilename}`);
+        // Store the processed content and file info for later pagination
+        return {
+            content: processedContent,
+            outputFile,
+            outputFilename,
+            documentTitle,
+            doc
+        };
         
     } catch (error) {
         console.error('Conversion failed:', error);
@@ -453,15 +521,69 @@ async function generateIndexHtml() {
 async function main() {
     try {
         await ensureDirectories();
+        await createDefaultCss();
+        
+        let filesToProcess = [];
         
         // Check if a single file was specified
         if (process.argv[5] && process.argv[5].endsWith('.docx')) {
-            await convertDocument(process.argv[5]);
+            filesToProcess = [process.argv[5]];
         } else {
-            await processDirectory(sourceDir);
+            // Get all .docx files from the source directory
+            const files = await getWordFiles(sourceDir);
+            filesToProcess = files.map(file => path.join(sourceDir, file));
         }
+        
+        if (filesToProcess.length === 0) {
+            console.log('No Word documents found to process');
+            return;
+        }
+        
+        console.log(`Found ${filesToProcess.length} Word documents to process`);
+        const conversionResults = [];
+        
+        // First pass: Convert all documents and collect results
+        for (const file of filesToProcess) {
+            try {
+                const result = await convertDocument(file);
+                if (result) {
+                    conversionResults.push(result);
+                }
+            } catch (error) {
+                console.error(`Failed to convert ${path.basename(file)}:`, error);
+            }
+        }
+        
+        if (conversionResults.length === 0) {
+            console.error('No documents were successfully converted');
+            return;
+        }
+        
+        // Sort documents for proper pagination order
+        documents.sort((a, b) => {
+            if (a.categoryOrder !== b.categoryOrder) {
+                return a.categoryOrder - b.categoryOrder;
+            }
+            return a.filename.localeCompare(b.filename);
+        });
+        
+        // Second pass: Generate HTML with pagination
+        for (const result of conversionResults) {
+            const { prev, next } = getPaginationInfo(documents, result.outputFilename);
+            const paginationHtml = generatePaginationHtml(prev, next);
+            
+            // Add pagination to HTML template
+            const html5Content = generateHtml5Template(result.content, result.documentTitle, paginationHtml);
+            await fs.writeFile(result.outputFile, html5Content, 'utf8');
+            console.log(`Successfully converted to ${result.outputFilename}`);
+        }
+        
+        // Generate index page
+        await generateIndexHtml();
+        console.log('Conversion complete!');
+        
     } catch (error) {
-        console.error('Process failed:', error);
+        console.error('Conversion failed:', error);
         process.exit(1);
     }
 }
