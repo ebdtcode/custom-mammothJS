@@ -7,6 +7,7 @@ const CommonUtils = require('./lib/utils/common');
 const config = require('./lib/config');
 const createExtensions = require('./lib');
 const extractTitle = require('./lib/utils/extractTitle');
+const StyleGenerator = require('./lib/ui/styles');
 
 async function convertDocument(inputPath, options = {}) {
     try {
@@ -110,97 +111,16 @@ async function extractDocumentTitle(content) {
 
 function generateHtml(content, title, navbar) {
     const currentDate = new Date().toISOString();
+    const styleGenerator = new StyleGenerator();
     
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Generated document: ${title}">
-    <meta name="generator" content="MammothJS Document Converter">
-    <meta name="date" content="${currentDate}">
-    <meta name="author" content="MammothJS">
-    
     <title>${title}</title>
-    
-    <!-- Styles -->
-    <link rel="stylesheet" href="../main.css">
     <style>
-        /* Document-specific styles */
-        .document-content {
-            background: white;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin: 2rem auto;
-            max-width: 1200px;
-        }
-        
-        .document-content img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 4px;
-            margin: 1rem 0;
-        }
-        
-        .document-content table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 1rem 0;
-        }
-        
-        .document-content td, 
-        .document-content th {
-            padding: 0.75rem;
-            border: 1px solid var(--primary-color);
-        }
-        
-        .document-content th {
-            background: var(--primary-color);
-            color: white;
-        }
-        
-        .document-content tr:nth-child(even) {
-            background: var(--background-color);
-        }
-        
-        .document-content ul,
-        .document-content ol {
-            padding-left: 2rem;
-            margin: 1rem 0;
-        }
-        
-        .document-content li {
-            margin: 0.5rem 0;
-        }
-        
-        .document-content p {
-            line-height: 1.6;
-            margin: 1rem 0;
-        }
-        
-        @media (prefers-color-scheme: dark) {
-            .document-content {
-                background: #2d2d2d;
-            }
-            
-            .document-content tr:nth-child(even) {
-                background: #333;
-            }
-        }
-        
-        @media print {
-            .navbar,
-            .pagination {
-                display: none;
-            }
-            
-            .document-content {
-                box-shadow: none;
-                margin: 0;
-                padding: 0;
-            }
-        }
+        ${styleGenerator.generate()}
     </style>
 </head>
 <body>

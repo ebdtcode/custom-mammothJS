@@ -1,0 +1,29 @@
+:root {
+  --primary-color: #1a73e8;
+  --text-primary: #202124;
+  --background-primary: #ffffff;
+  --background-secondary: #f8f9fa;
+  --nav-height: 64px;
+  --spacing-base: 1rem;
+  --radius: 8px;
+}
+
+.navbar {
+  height: var(--nav-height);
+  background: var(--background-primary);
+  border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.document-list {
+  display: grid;
+  gap: var(--spacing-base);
+  padding: var(--spacing-base);
+}
+
+.search-box {
+  max-width: 600px;
+  margin: 2rem auto;
+}
