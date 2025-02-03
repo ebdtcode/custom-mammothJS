@@ -1,0 +1,49 @@
+/* Main stylesheet for the documentation UI application */
+
+/* Importing base styles */
+@import './base.css';
+
+/* Importing component styles */
+@import './components/footer.css';
+@import './components/header.css';
+@import './components/navbar.css';
+@import './components/sidebar.css';
+
+/* Importing layout styles */
+@import './layout.css';
+
+/* Importing theme styles */
+@import './themes/dark.css';
+@import './themes/light.css';
+
+/* Importing CSS variables */
+@import './variables.css';
+
+/* Additional styles specific to the application can be added below */
+body {
+    font-family: var(--font-family, Arial, sans-serif);
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background-color: var(--background-color, #ffffff);
+    color: var(--text-color, #333);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    margin: 0;
+    padding: 0;
+    color: var(--primary-color, #007bff);
+}
+
+/* Responsive design adjustments */
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+}

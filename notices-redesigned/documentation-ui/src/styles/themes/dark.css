@@ -1,0 +1,44 @@
+/* Dark theme styles for the documentation UI */
+
+:root {
+    --background-color: #121212;
+    --text-color: #e0e0e0;
+    --primary-color: #bb86fc;
+    --secondary-color: #03dac6;
+    --footer-background: #1f1f1f;
+    --header-background: #1f1f1f;
+    --navbar-background: #1f1f1f;
+    --sidebar-background: #1f1f1f;
+    --link-color: #bb86fc;
+    --link-hover-color: #3700b3;
+}
+
+body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-family: 'Arial', sans-serif;
+}
+
+header {
+    background-color: var(--header-background);
+}
+
+footer {
+    background-color: var(--footer-background);
+}
+
+.navbar {
+    background-color: var(--navbar-background);
+}
+
+.sidebar {
+    background-color: var(--sidebar-background);
+}
+
+a {
+    color: var(--link-color);
+}
+
+a:hover {
+    color: var(--link-hover-color);
+}

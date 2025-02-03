@@ -1,0 +1,27 @@
+.site-header {
+  grid-area: header;
+  position: fixed;
+  width: 100%;
+  height: var(--header-height);
+  background: var(--background);
+  border-bottom: 1px solid var(--border);
+  z-index: 100;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: var(--content-width);
+  margin: 0 auto;
+}
+
+.nav-toggle {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .nav-toggle {
+    display: block;
+  }
+}

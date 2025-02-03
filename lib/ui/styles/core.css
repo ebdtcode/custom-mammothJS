@@ -1,11 +1,29 @@
 :root {
-  --primary-color: #1a73e8;
-  --text-primary: #202124;
-  --background-primary: #ffffff;
-  --background-secondary: #f8f9fa;
-  --nav-height: 64px;
-  --spacing-base: 1rem;
-  --radius: 8px;
+  /* Colors */
+  --primary-color: #007bff;
+  --secondary-color: #6c757d;
+  --text-color: #212529;
+  --background-color: #ffffff;
+  --border-color: #dee2e6;
+  --code-bg: #f8f9fa;
+
+  /* Typography */
+  --font-heading: 'Work Sans', system-ui, sans-serif;
+  --font-body: 'Open Sans', system-ui, sans-serif;
+  --font-mono: 'Inconsolata', monospace;
+  
+  /* Layout */
+  --header-height: 7rem;
+  --sidebar-width: 25rem;
+  --content-width: 65rem;
+  --spacing-unit: 1rem;
+}
+
+[data-theme="dark"] {
+  --text-color: #e9ecef;
+  --background-color: #1a1a1a;
+  --border-color: #343a40;
+  --code-bg: #2d3238;
 }
 
 .navbar {

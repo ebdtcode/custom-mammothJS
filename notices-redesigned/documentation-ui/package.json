@@ -1,0 +1,26 @@
+{
+  "name": "documentation-ui",
+  "version": "1.0.0",
+  "description": "A documentation UI for displaying and managing documents.",
+  "main": "src/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "jest"
+  },
+  "dependencies": {
+    "mammoth": "^1.4.2"
+  },
+  "devDependencies": {
+    "typescript": "^4.5.4",
+    "jest": "^27.0.6",
+    "ts-jest": "^27.0.6"
+  },
+  "keywords": [
+    "documentation",
+    "ui",
+    "typescript"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}

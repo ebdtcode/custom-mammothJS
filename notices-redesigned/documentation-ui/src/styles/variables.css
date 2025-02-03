@@ -1,0 +1,17 @@
+:root {
+    --primary-color: #3498db;
+    --secondary-color: #2ecc71;
+    --accent-color: #e74c3c;
+    --background-color: #ffffff;
+    --text-color: #333333;
+    --header-background: var(--primary-color);
+    --footer-background: #f8f8f8;
+    --navbar-background: var(--secondary-color);
+    --sidebar-background: #f4f4f4;
+    --font-family: 'Arial', sans-serif;
+    --font-size-base: 16px;
+    --font-size-large: 1.25rem;
+    --font-size-small: 0.875rem;
+    --border-radius: 4px;
+    --transition-speed: 0.3s;
+}

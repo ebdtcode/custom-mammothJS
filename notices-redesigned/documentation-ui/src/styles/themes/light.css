@@ -1,0 +1,54 @@
+/* Light Theme Styles */
+
+:root {
+    --primary-color: #ffffff;
+    --secondary-color: #f0f0f0;
+    --text-color: #333333;
+    --link-color: #007bff;
+    --link-hover-color: #0056b3;
+    --footer-background: #f8f9fa;
+    --header-background: #ffffff;
+    --navbar-background: #ffffff;
+    --sidebar-background: #f0f0f0;
+}
+
+body {
+    background-color: var(--primary-color);
+    color: var(--text-color);
+    font-family: 'Arial', sans-serif;
+}
+
+a {
+    color: var(--link-color);
+    text-decoration: none;
+}
+
+a:hover {
+    color: var(--link-hover-color);
+}
+
+/* Footer Styles */
+.footer {
+    background-color: var(--footer-background);
+    padding: 20px;
+    text-align: center;
+}
+
+/* Header Styles */
+.header {
+    background-color: var(--header-background);
+    padding: 10px 20px;
+}
+
+/* Navbar Styles */
+.navbar {
+    background-color: var(--navbar-background);
+    padding: 10px;
+}
+
+/* Sidebar Styles */
+.sidebar {
+    background-color: var(--sidebar-background);
+    padding: 15px;
+    width: 250px;
+}

@@ -1,0 +1,34 @@
+.footer {
+    background-color: var(--footer-bg-color);
+    color: var(--footer-text-color);
+    padding: 20px;
+    text-align: center;
+    border-top: 1px solid var(--border-color);
+}
+
+.footer a {
+    color: var(--footer-link-color);
+    text-decoration: none;
+}
+
+.footer a:hover {
+    text-decoration: underline;
+}
+
+.footer .social-icons {
+    margin-top: 10px;
+}
+
+.footer .social-icons a {
+    margin: 0 10px;
+    color: var(--footer-link-color);
+}
+
+.footer .social-icons a:hover {
+    color: var(--footer-link-hover-color);
+}
+
+.footer .copyright {
+    margin-top: 15px;
+    font-size: 0.9em;
+}
